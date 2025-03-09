@@ -1,0 +1,13 @@
+{
+  "name": "viewhtml",
+  "module": "index.ts",
+  "version": "1.0.0",
+  "description": "This package provides a class for interpreting and translating HTML templates.",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
