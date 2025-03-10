@@ -10,6 +10,10 @@
 - **Fluent API**: Supports method chaining for streamlined operations.
 - **Bun Compatibility**: Leverages Bun’s file API for efficient file operations.
 
+## Changelog
+- **v1.0.0**: First version (added ViewHtml class and ability for translations and data inserting)
+- **v1.0.1**: Added the selector(prefix) method and the alias method s(prefix) and enabled beta for advanced data
+
 ## Installation
 
 To use `ViewHtml`, you’ll need [Bun](https://bun.sh/), a fast JavaScript runtime. Install Bun by following the instructions on the [official Bun website](https://bun.sh/).
@@ -33,6 +37,35 @@ const interpreted_html = new ViewHtml(raw_html_string, "$")
 console.log(interpreted_html);
 // Output: <p>Hello, Max Mustermann!</p>
 ```
+
+### Advanced Data: Loops
+
+The `ViewHtml` class now supports advanced loops to render repeated elements from array data. This is particularly useful for generating lists, tables, or any repeated structure. Use the `@for:<arrayKey>{...}` syntax to add advanced data
+
+```typescript
+const raw_html_string = "<p>$greeting</p> <ul> @for:advanced{<li>$key : $key2</li>} </ul>";
+const data = { 
+  greeting: "Hello", 
+  advanced: [
+    { key: "key1", key2: "value1" },
+    { key: "key2", key2: "value2" },
+  ]
+};
+
+const interpreted_html = new ViewHtml(raw_html_string, "$")
+  .interpret(data)
+  .toHTML();
+
+console.log(interpreted_html);
+// Output: <p>Hello, Name! </p> <ul> <li>key1 : value1</li><li>key2 : value2</li> </ul>
+```
+
+The loop syntax follows this pattern: `@for:arrayKey{template}` where:
+- `arrayKey` is the property name in your data that contains the array
+- `template` is the HTML template to repeat for each array element
+- Inside the template, you can use prefixed keywords that will be replaced with properties from each array item
+
+This feature enables dynamic content generation from structured data while maintaining clean, readable templates.
 
 ### Translation with Fallback
 

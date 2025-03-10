@@ -25,16 +25,61 @@ export class ViewHtml {
     }
 
     /**
-     * Interprets keywords in the HTML and replaces them with values from a provided object.
-     * @param data An object with keywords as keys and their replacement values.
+     * Sets a new prefix character for identifying keywords in the HTML.
+     * @param prefix The new prefix character to use for identifying keywords.
      * @returns The instance itself for command chaining.
      */
-    interpret(data: Record<string, string>): ViewHtml {
-        const regex = new RegExp(`\\${this.prefix}(\\w+)`, "g");
-        this.html = this.html.replace(regex, (match, keyword) => {
-            // Replace with the value if the keyword exists in data, otherwise keep the original match
-            return keyword in data ? data[keyword] : match;
+    selector(prefix: string) {
+        this.prefix = prefix;
+        return this;
+    }
+
+    /**
+     * Sets a new prefix character for identifying keywords in the HTML.
+     * @param prefix The new prefix character to use for identifying keywords.
+     * @returns The instance itself for command chaining.
+     * @alias selector
+     */
+    s(prefix: string) {
+        this.prefix = prefix;
+        return this;
+    }
+
+    /**
+     * Interprets keywords in the HTML and replaces them with values from a provided object.
+     * Now supports advanced data arrays with syntax:
+     *   @for:<arrayKey>{...template...}
+     * Each occurrence will be repeated for every element in the array, replacing inner keywords.
+     * @param data An object with keywords as keys and their replacement values. Array values trigger for-loop processing.
+     * @returns The instance itself for command chaining.
+     */
+    interpret(data: Record<string, any>): ViewHtml {
+        // Process advanced array loops first.
+        const forLoopRegex = /@for:(\w+)\{([\s\S]*?)\}/g;
+        this.html = this.html.replace(forLoopRegex, (match, arrayKey, template) => {
+            const arrayData = data[arrayKey];
+            if (Array.isArray(arrayData)) {
+                return arrayData.map(item => {
+                    // Replace keywords within the loop block using the current array item.
+                    return template.replace(new RegExp(`\\${this.prefix}(\\w+)`, "g"), (m: any, innerKey: string) => {
+                        return innerKey in item ? item[innerKey] : m;
+                    });
+                }).join('');
+            }
+            // If the data for arrayKey is not an array, return the original block.
+            return match;
         });
+
+        // Process simple keyword replacements.
+        const simpleRegex = new RegExp(`\\${this.prefix}(\\w+)`, "g");
+        this.html = this.html.replace(simpleRegex, (match, keyword) => {
+            // Only replace if the value exists and is not an array (to avoid overwriting for-loops).
+            if (keyword in data && !Array.isArray(data[keyword])) {
+                return data[keyword];
+            }
+            return match;
+        });
+
         return this;
     }
 
